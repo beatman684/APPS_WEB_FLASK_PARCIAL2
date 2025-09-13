@@ -1,0 +1,27 @@
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.env
+.venv
+*.sqlite3
+*.db
+instance/
+.DS_Store
+# Archivos de entorno
+.env
+.env.local
+
+# Base de datos SQLite (ya no la usaremos)
+*.db
+*.sqlite3
+
+# Logs
+*.log
+
+# Entornos virtuales
+venv/
+env/

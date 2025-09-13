@@ -1,0 +1,233 @@
+/* Estilos generales - Solo una imagen de fondo para todo */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), 
+                url('../images/background.jpg') no-repeat center center fixed;
+    background-size: cover;
+    color: #333;
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+}
+
+/* Header con título centrado y sin imagen de fondo separada */
+.header-container {
+    text-align: center;
+    padding: 40px 0;
+    background-color: transparent; /* Fondo transparente para que se vea la imagen del body */
+}
+
+.logo-container {
+    margin-bottom: 15px;
+}
+
+.logo {
+    font-size: 4rem;
+    font-weight: bold;
+    color: white;
+    margin: 0;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+}
+
+.slogan {
+    font-size: 1.8rem;
+    color: #f8f9fa;
+    font-style: italic;
+    margin: 10px 0 0 0;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
+}
+
+.tagline {
+    font-size: 1.3rem;
+    color: #e9ecef;
+    margin: 15px 0 0 0;
+    font-weight: 500;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
+}
+
+/* Barra de navegación */
+.navbar-custom {
+    background-color: #2c3e50 !important;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+}
+
+.navbar-brand-custom {
+    font-weight: bold;
+    font-size: 1.5rem;
+}
+
+/* Contenido principal */
+.container-main {
+    background-color: rgba(255, 255, 255, 0.95);
+    border-radius: 10px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+    margin-top: 30px;
+    margin-bottom: 30px;
+    padding: 30px;
+}
+
+/* Botones personalizados */
+.btn-primary {
+    background-color: #3498db;
+    border-color: #3498db;
+}
+
+.btn-primary:hover {
+    background-color: #2980b9;
+    border-color: #2980b9;
+}
+
+.btn-warning {
+    background-color: #f39c12;
+    border-color: #f39c12;
+}
+
+.btn-danger {
+    background-color: #e74c3c;
+    border-color: #e74c3c;
+}
+
+/* Tablas */
+.table th {
+    background-color: #2c3e50;
+    color: white;
+}
+
+.table-hover tbody tr:hover {
+    background-color: rgba(52, 152, 219, 0.1);
+}
+
+/* Badges para stock */
+.badge.bg-success {
+    background-color: #27ae60 !important;
+}
+
+.badge.bg-danger {
+    background-color: #e74c3c !important;
+}
+
+/* Jumbotron personalizado */
+.jumbotron-custom {
+    background: linear-gradient(135deg, #3498db 0%, #2c3e50 100%);
+    color: white;
+    padding: 3rem 2rem;
+    border-radius: 10px;
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.jumbotron-custom h1 {
+    font-size: 3rem;
+    font-weight: bold;
+    margin-bottom: 1rem;
+}
+
+.jumbotron-custom .lead {
+    font-size: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.jumbotron-custom .btn {
+    font-size: 1.2rem;
+    padding: 0.75rem 2rem;
+}
+
+/* Separador decorativo */
+.separator {
+    height: 3px;
+    background: linear-gradient(90deg, transparent, #d4af37, transparent);
+    margin: 2rem 0;
+}
+
+/* Iconos */
+.bi {
+    margin-right: 5px;
+}
+
+/* Efectos adicionales para el título centrado */
+.logo-container {
+    position: relative;
+    z-index: 2;
+}
+
+.logo-container::before {
+    content: '';
+    position: absolute;
+    top: -20px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100px;
+    height: 4px;
+    background: #d4af37;
+    border-radius: 2px;
+}
+
+.logo-container::after {
+    content: '';
+    position: absolute;
+    bottom: -20px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80px;
+    height: 3px;
+    background: #d4af37;
+    border-radius: 2px;
+}
+
+/* Animación sutil para el título */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.logo {
+    animation: fadeInUp 1s ease-out;
+}
+
+.slogan {
+    animation: fadeInUp 1s ease-out 0.3s both;
+}
+
+.tagline {
+    animation: fadeInUp 1s ease-out 0.6s both;
+}
+
+/* Responsividad */
+@media (max-width: 768px) {
+    .logo {
+        font-size: 2.5rem;
+    }
+    
+    .slogan {
+        font-size: 1.3rem;
+    }
+    
+    .tagline {
+        font-size: 1rem;
+    }
+    
+    .jumbotron-custom h1 {
+        font-size: 2.2rem;
+    }
+    
+    .jumbotron-custom .lead {
+        font-size: 1.2rem;
+    }
+    
+    .btn-group .btn {
+        font-size: 0.8rem;
+        padding: 0.25rem 0.5rem;
+    }
+    
+    .header-container {
+        padding: 30px 0;
+    }
+}
