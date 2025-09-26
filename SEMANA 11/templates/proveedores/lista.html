@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <title>Proveedores - PERNO TODO</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body { background-color: #f8f9fa; }
+        .container { background-color: #ffffff; padding: 2rem; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .table thead th { background-color: #343a40; color: white; }
+    </style>
+</head>
+<body>
+    <div class="container mt-5">
+        <h2 class="text-center mb-4">Gestión de Proveedores</h2>
+        <a href="{{ url_for('agregar_proveedor') }}" class="btn btn-primary mb-3">Agregar Nuevo Proveedor</a>
+        
+        <table class="table table-bordered table-striped">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Empresa</th>
+                    <th>Contacto</th>
+                    <th>Teléfono</th>
+                    <th>RUC</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for proveedor in proveedores %}
+                <tr>
+                    <td>{{ proveedor.id_proveedor }}</td>
+                    <td>{{ proveedor.nombre_empresa }}</td>
+                    <td>{{ proveedor.contacto }}</td>
+                    <td>{{ proveedor.telefono }}</td>
+                    <td>{{ proveedor.ruc }}</td>
+                    <td>
+                        <a href="#" class="btn btn-sm btn-warning">Editar</a>
+                        <a href="#" class="btn btn-sm btn-danger">Eliminar</a>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="6" class="text-center">No hay proveedores registrados.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>

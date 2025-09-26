@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <title>Agregar Proveedor - PERNO TODO</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body { background-color: #f8f9fa; }
+        .container { background-color: #ffffff; padding: 2rem; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+    </style>
+</head>
+<body>
+    <div class="container mt-5">
+        <h2 class="text-center mb-4">Agregar Nuevo Proveedor</h2>
+        <form action="{{ url_for('agregar_proveedor') }}" method="post">
+            <div class="form-group">
+                <label for="nombre_empresa">Nombre de la Empresa</label>
+                <input type="text" class="form-control" id="nombre_empresa" name="nombre_empresa" required>
+            </div>
+            <div class="form-group">
+                <label for="contacto">Contacto</label>
+                <input type="text" class="form-control" id="contacto" name="contacto" required>
+            </div>
+            <div class="form-group">
+                <label for="telefono">Teléfono</label>
+                <input type="text" class="form-control" id="telefono" name="telefono" required>
+            </div>
+            <div class="form-group">
+                <label for="direccion">Dirección</label>
+                <input type="text" class="form-control" id="direccion" name="direccion" required>
+            </div>
+            <div class="form-group">
+                <label for="ruc">RUC</label>
+                <input type="text" class="form-control" id="ruc" name="ruc" required>
+            </div>
+            <div class="form-group">
+                <label for="email">Email (Opcional)</label>
+                <input type="email" class="form-control" id="email" name="email">
+            </div>
+            <button type="submit" class="btn btn-primary btn-block mt-4">Guardar Proveedor</button>
+        </form>
+    </div>
+</body>
+</html>

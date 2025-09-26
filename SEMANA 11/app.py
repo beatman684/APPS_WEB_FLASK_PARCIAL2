@@ -1,148 +1,101 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
-from models.inventario import Inventario
-from models.producto import Producto
-# Comenta estas líneas temporalmente hasta que crees los archivos
-# from models.cliente import Cliente
-# from models.proveedor import Proveedor
-# from models.venta import Venta
-from database.connection import init_db
-import json
+import sqlite3
+from flask import Flask, render_template, request, redirect, url_for, flash, session, g
+from functools import wraps
+from database.connection import get_db, init_db 
 
+# --- Configuración de Flask ---
 app = Flask(__name__)
-app.secret_key = 'clave_secreta_perno_todo'  # Cambia esto en producción
+app.config['SECRET_KEY'] = 'una_clave_secreta_muy_larga_y_segura_aqui_va_otra' 
 
-# Inicializar el inventario
-inventario = Inventario()
+# --- Hook: Cargar Usuario Antes de la Solicitud ---
+@app.before_request
+def load_logged_in_user():
+    """Carga el objeto del usuario en la variable global 'g' si hay una sesión activa."""
+    user_email = session.get('email')
+
+    if user_email is None:
+        g.user = None
+    else:
+        db = get_db()
+        # Selecciona todos los campos necesarios
+        user_data = db.execute("SELECT id_usuario, email, nombre, role FROM usuario WHERE email = ?", (user_email,)).fetchone()
+        db.close()
+        
+        # Convierte sqlite3.Row a un objeto simple si lo deseas, o usa el objeto Row directamente
+        if user_data:
+            # Creamos un objeto simple (diccionario) para facilidad de uso en plantillas
+            g.user = dict(user_data) 
+        else:
+            g.user = None
+            session.pop('email', None) # Limpiar sesión si el usuario no existe
+
+# --- Decorador de Seguridad ---
+def login_required(f):
+    """Redirige al login si el usuario no tiene una sesión activa."""
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if g.user is None: # Usamos g.user para verificar la sesión
+            flash('Por favor, inicia sesión para acceder a esta página.', 'warning')
+            return redirect(url_for('login', next=request.url))
+        return f(*args, **kwargs)
+    return decorated_function
+
+# --- Rutas de Autenticación ---
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if g.user is not None:
+         return redirect(url_for('dashboard'))
+
+    if request.method == 'POST':
+        email = request.form['email']
+        password = request.form['password']
+        
+        db = get_db()
+        user = db.execute("SELECT email, password_hash FROM usuario WHERE email = ?", (email,)).fetchone()
+        db.close()
+        
+        if user and user['password_hash'] == password: # Validación
+            session['email'] = user['email']
+            flash(f'¡Bienvenido, {email.split("@")[0].capitalize()}!', 'success')
+            
+            next_url = request.args.get('next')
+            return redirect(next_url or url_for('dashboard'))
+        else:
+            flash('Email o contraseña incorrectos.', 'danger')
+
+    return render_template('login.html')
+
+@app.route('/logout')
+def logout():
+    """Cierra la sesión del usuario."""
+    session.pop('email', None) 
+    flash('Has cerrado sesión correctamente.', 'info')
+    return redirect(url_for('login'))
+
+# --- Rutas Protegidas ---
 
 @app.route('/')
-def index():
-    """
-    Página principal del sistema de gestión
-    """
-    return render_template('index.html')
+@app.route('/dashboard')
+@login_required 
+def dashboard():
+    # g.user ya tiene la información del usuario cargada
+    return render_template('dashboard.html')
 
-# Rutas para gestión de productos
 @app.route('/productos')
+@login_required 
 def listar_productos():
-    """
-    Muestra todos los productos del inventario
-    """
-    productos = inventario.obtener_todos()
-    productos_bajo_stock = inventario.contar_productos_bajo_stock()
-    return render_template('productos/lista.html', 
-                         productos=productos, 
-                         productos_bajo_stock=productos_bajo_stock)
+    try:
+        db = get_db()
+        productos = db.execute('SELECT * FROM productos').fetchall()
+        db.close()
+        return render_template('productos/lista.html', productos=productos)
+    except sqlite3.Error as e:
+        flash(f'Error al cargar productos: {e}', 'danger')
+        return redirect(url_for('dashboard'))
 
-@app.route('/productos/agregar', methods=['GET', 'POST'])
-def agregar_producto():
-    """
-    Agrega un nuevo producto al inventario
-    """
-    if request.method == 'POST':
-        try:
-            # Obtener datos del formulario
-            codigo = request.form['codigo']
-            nombre = request.form['nombre']
-            descripcion = request.form['descripcion']
-            categoria = request.form['categoria']
-            precio_compra = float(request.form['precio_compra'])
-            precio_venta = float(request.form['precio_venta'])
-            stock = int(request.form['stock'])
-            stock_minimo = int(request.form['stock_minimo'])
-            unidad_medida = request.form['unidad_medida']
-            proveedor_id = request.form.get('proveedor_id') or None
-            
-            # Crear nuevo producto
-            nuevo_producto = Producto(
-                codigo=codigo,
-                nombre=nombre,
-                descripcion=descripcion,
-                categoria=categoria,
-                precio_compra=precio_compra,
-                precio_venta=precio_venta,
-                stock=stock,
-                stock_minimo=stock_minimo,
-                unidad_medida=unidad_medida,
-                proveedor_id=proveedor_id
-            )
-            
-            # Añadir al inventario
-            inventario.añadir_producto(nuevo_producto)
-            
-            flash('Producto agregado correctamente', 'success')
-            return redirect(url_for('listar_productos'))
-            
-        except Exception as e:
-            flash(f'Error al agregar producto: {str(e)}', 'error')
-    
-    # Si es GET, mostrar formulario
-    return render_template('productos/agregar.html')
-
-@app.route('/productos/editar/<int:producto_id>', methods=['GET', 'POST'])
-def editar_producto(producto_id):
-    """
-    Edita un producto existente
-    """
-    producto = inventario.obtener_producto(producto_id)
-    
-    if not producto:
-        flash('Producto no encontrado', 'error')
-        return redirect(url_for('listar_productos'))
-    
-    if request.method == 'POST':
-        try:
-            # Actualizar producto con los datos del formulario
-            producto.codigo = request.form['codigo']
-            producto.nombre = request.form['nombre']
-            producto.descripcion = request.form['descripcion']
-            producto.categoria = request.form['categoria']
-            producto.precio_compra = float(request.form['precio_compra'])
-            producto.precio_venta = float(request.form['precio_venta'])
-            producto.stock = int(request.form['stock'])
-            producto.stock_minimo = int(request.form['stock_minimo'])
-            producto.unidad_medida = request.form['unidad_medida']
-            producto.proveedor_id = request.form.get('proveedor_id') or None
-            
-            # Guardar cambios
-            inventario.actualizar_producto(producto_id)
-            
-            flash('Producto actualizado correctamente', 'success')
-            return redirect(url_for('listar_productos'))
-            
-        except Exception as e:
-            flash(f'Error al actualizar producto: {str(e)}', 'error')
-    
-    # Si es GET, mostrar formulario con datos actuales
-    return render_template('productos/editar.html', producto=producto)
-
-@app.route('/productos/eliminar/<int:producto_id>')
-def eliminar_producto(producto_id):
-    """
-    Elimina un producto del inventario
-    """
-    if inventario.eliminar_producto(producto_id):
-        flash('Producto eliminado correctamente', 'success')
-    else:
-        flash('Error al eliminar producto', 'error')
-    
-    return redirect(url_for('listar_productos'))
-
-@app.route('/api/productos')
-def api_productos():
-    """
-    API para obtener productos (para AJAX)
-    """
-    productos = inventario.obtener_todos()
-    return jsonify([{
-        'id': p.id,
-        'nombre': p.nombre,
-        'precio_venta': p.precio_venta,
-        'stock': p.stock
-    } for p in productos])
-
+# --- Función Principal ---
 if __name__ == '__main__':
-    # Inicializar la base de datos si no existe
+    # Inicializa la base de datos al arrancar la app
     init_db()
-    
-    # Ejecutar la aplicación
     app.run(debug=True)
