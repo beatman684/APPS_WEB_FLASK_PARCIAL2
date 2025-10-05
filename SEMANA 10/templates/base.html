@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ title }} | APPS WEB Flask</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <header class="site-header">
+        <div class="container flex between center">
+            <a class="brand" href="{{ url_for('index') }}">APPS WEB Flask</a>
+            <nav class="nav">
+                <a href="{{ url_for('index') }}">Inicio</a>
+                <a href="{{ url_for('about') }}">Acerca de</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="site-footer">
+        <div class="container">
+            <p>© 2025 · Proyecto Flask con Jinja2 · Desplegado en Render</p>
+        </div>
+    </footer>
+</body>
+</html>
