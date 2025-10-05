@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+
+{% block title %}Editar Producto{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1><i class="bi bi-pencil-square"></i> Editar Producto: {{ producto.nombre_producto }}</h1>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category, message in messages %}
+        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% endfor %}
+    {% endif %}
+    {% endwith %}
+
+    {% set data = form_data if form_data else producto %}
+
+    <form method="POST" class="card p-4 shadow-sm">
+        
+        <h5 class="mt-2 mb-3 text-primary">Detalles Básicos del Producto</h5>
+        <div class="row">
+            <div class="col-md-4 mb-3">
+                <label for="codigo_producto" class="form-label"><i class="bi bi-barcode"></i> Código</label>
+                <input type="text" class="form-control" id="codigo_producto" name="codigo_producto" required 
+                       value="{{ data.codigo_producto }}">
+            </div>
+            <div class="col-md-8 mb-3">
+                <label for="nombre_producto" class="form-label"><i class="bi bi-tag"></i> Nombre</label>
+                <input type="text" class="form-control" id="nombre_producto" name="nombre_producto" required
+                       value="{{ data.nombre_producto }}">
+            </div>
+        </div>
+        
+        <div class="mb-3">
+            <label for="descripcion" class="form-label"><i class="bi bi-textarea-t"></i> Descripción (Detalles de acabado, color, etc.)</label>
+            <textarea class="form-control" id="descripcion" name="descripcion" rows="2">{{ data.descripcion }}</textarea>
+        </div>
+
+        <h5 class="mt-4 mb-3 text-primary">Clasificación y Suministro</h5>
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label for="id_categoria" class="form-label"><i class="bi bi-grid"></i> Categoría</label>
+                <select class="form-select" id="id_categoria" name="id_categoria" required>
+                    {% for categoria in categorias %}
+                        <option value="{{ categoria.id_categoria }}" 
+                                {% if data.id_categoria|string == categoria.id_categoria|string %}selected{% endif %}>
+                            {{ categoria.nombre_categoria }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="col-md-6 mb-3">
+                <label for="id_proveedor" class="form-label"><i class="bi bi-truck"></i> Proveedor</label>
+                <select class="form-select" id="id_proveedor" name="id_proveedor" required>
+                    {% for proveedor in proveedores %}
+                        <option value="{{ proveedor.id_proveedor }}"
+                                {% if data.id_proveedor|string == proveedor.id_proveedor|string %}selected{% endif %}>
+                            {{ proveedor.nombre_empresa }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <h5 class="mt-4 mb-3 text-primary">Especificaciones Técnicas Obligatorias</h5>
+        <div class="row">
+            <div class="col-md-4 mb-3">
+                <label for="material" class="form-label"><i class="bi bi-hammer"></i> Material</label>
+                <input type="text" class="form-control" id="material" name="material" required 
+                       value="{{ data.material }}" placeholder="Ej: Acero al carbono, Cobre, Nylon">
+            </div>
+
+            <div class="col-md-4 mb-3">
+                <label for="tipo_rosca" class="form-label"><i class="bi bi-gear"></i> Tipo de Rosca</label>
+                <select class="form-select" id="tipo_rosca" name="tipo_rosca" required>
+                    <option value="fina" {% if data.tipo_rosca == 'fina' %}selected{% endif %}>Fina</option>
+                    <option value="gruesa" {% if data.tipo_rosca == 'gruesa' %}selected{% endif %}>Gruesa</option>
+                    <option value="milimetrica" {% if data.tipo_rosca == 'milimetrica' %}selected{% endif %}>Milimétrica</option>
+                    <option value="izquierda" {% if data.tipo_rosca == 'izquierda' %}selected{% endif %}>Rosca Izquierda</option>
+                </select>
+            </div>
+            
+            <div class="col-md-4 mb-3">
+                <label for="unidad_medida" class="form-label"><i class="bi bi-rulers"></i> Unidad Base</label>
+                <select class="form-select" id="unidad_medida" name="unidad_medida" required>
+                    <option value="unidad" {% if data.unidad_medida == 'unidad' %}selected{% endif %}>Unidad</option>
+                    <option value="paquete" {% if data.unidad_medida == 'paquete' %}selected{% endif %}>Paquete</option>
+                    <option value="caja" {% if data.unidad_medida == 'caja' %}selected{% endif %}>Caja</option>
+                    <option value="kg" {% if data.unidad_medida == 'kg' %}selected{% endif %}>Kilogramo</option>
+                    <option value="metro" {% if data.unidad_medida == 'metro' %}selected{% endif %}>Metro</option>
+                </select>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-4 mb-3">
+                <label for="medida" class="form-label"><i class="bi bi-aspect-ratio"></i> Medida Específica</label>
+                <select class="form-select" id="medida" name="medida" required>
+                    <option value="1/4&quot;" {% if data.medida == '1/4"' %}selected{% endif %}>1/4"</option>
+                    <option value="3/8&quot;" {% if data.medida == '3/8"' %}selected{% endif %}>3/8"</option>
+                    <option value="1/2&quot;" {% if data.medida == '1/2"' %}selected{% endif %}>1/2"</option>
+                    <option value="3/4&quot;" {% if data.medida == '3/4"' %}selected{% endif %}>3/4"</option>
+                    <option value="1&quot;" {% if data.medida == '1"' %}selected{% endif %}>1"</option>
+                    <option value="2&quot;" {% if data.medida == '2"' %}selected{% endif %}>2"</option>
+                    <option value="5&quot;" {% if data.medida == '5"' %}selected{% endif %}>5"</option>
+                </select>
+            </div>
+        </div>
+
+        <h5 class="mt-4 mb-3 text-primary">Precios e Inventario</h5>
+        <div class="row">
+            <div class="col-md-3 mb-3">
+                <label for="precio_compra" class="form-label"><i class="bi bi-currency-dollar"></i> Precio de Compra</label>
+                <input type="number" step="0.01" class="form-control" id="precio_compra" name="precio_compra" required
+                       value="{{ data.precio_compra }}">
+            </div>
+            
+            <div class="col-md-3 mb-3">
+                <label for="precio_venta" class="form-label"><i class="bi bi-currency-dollar"></i> Precio de Venta</label>
+                <input type="number" step="0.01" class="form-control" id="precio_venta" name="precio_venta" required
+                       value="{{ data.precio_venta }}">
+            </div>
+            
+            <div class="col-md-3 mb-3">
+                <label for="stock_actual" class="form-label"><i class="bi bi-box"></i> Stock Actual</label>
+                <input type="number" class="form-control" id="stock_actual" name="stock_actual" required
+                       value="{{ data.stock_actual }}">
+            </div>
+            
+            <div class="col-md-3 mb-3">
+                <label for="stock_minimo" class="form-label"><i class="bi bi-exclamation-triangle"></i> Stock Mínimo</label>
+                <input type="number" class="form-control" id="stock_minimo" name="stock_minimo" required value="{{ data.stock_minimo }}">
+            </div>
+        </div>
+        
+        <div class="mt-4 pt-3 border-top">
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-save"></i> Guardar Cambios
+            </button>
+            <a href="{{ url_for('listar_productos') }}" class="btn btn-secondary">
+                <i class="bi bi-x-circle"></i> Cancelar
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}

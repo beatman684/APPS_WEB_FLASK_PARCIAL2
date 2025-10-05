@@ -1,0 +1,24 @@
+services:
+  - type: web
+    name: perno-todo-mysql
+    env: python
+    plan: free
+    buildCommand: |
+      pip install -r requirements.txt
+      python database/connection.py
+    startCommand: gunicorn app:app
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.9.0
+      - key: DB_HOST
+        fromSecret: DB_HOST
+      - key: DB_NAME
+        fromSecret: DB_NAME
+      - key: DB_USER
+        fromSecret: DB_USER
+      - key: DB_PASSWORD
+        fromSecret: DB_PASSWORD
+      - key: DB_PORT
+        value: 3306
+      - key: SECRET_KEY
+        fromSecret: SECRET_KEY

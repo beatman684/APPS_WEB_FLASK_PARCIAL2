@@ -1,0 +1,362 @@
+{% extends "base.html" %}
+
+{% block title %}Punto de Venta{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row">
+        
+        <div class="col-lg-8">
+            <h2 class="mb-3"><i class="bi bi-cart4"></i> Punto de Venta (POS)</h2>
+
+            <div class="card mb-3 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="bi bi-search"></i> Buscar Productos</h5>
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="searchInput" placeholder="Buscar por código o nombre..." autofocus>
+                        <button class="btn btn-primary" type="button" id="searchButton"><i class="bi bi-search"></i></button>
+                    </div>
+                    <div id="searchResults" class="list-group mt-2">
+                        </div>
+                </div>
+            </div>
+
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">Carrito de Venta (<span id="itemCount">0</span> Items)</h5>
+                    <div class="table-responsive">
+                        <table class="table table-striped table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Cód.</th>
+                                    <th>Producto</th>
+                                    <th class="text-end">Precio</th>
+                                    <th style="width: 150px;">Cantidad</th>
+                                    <th class="text-end">Subtotal</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody id="cartTableBody">
+                                <tr id="emptyCartMessage">
+                                    <td colspan="6" class="text-center text-muted">El carrito está vacío. Use el buscador.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <h2 class="mb-3 text-white">.</h2> 
+            <div class="card shadow-lg bg-light sticky-top" style="top: 15px;">
+                <div class="card-body">
+                    <h5 class="card-title text-success"><i class="bi bi-cash-stack"></i> Resumen de Pago</h5>
+                    
+                    <div class="mb-3">
+                        <label for="cedulaCliente" class="form-label">Cédula/RUC Cliente (Opcional)</label>
+                        <input type="text" class="form-control" id="cedulaCliente" placeholder="9999999999">
+                    </div>
+
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Subtotal (Neto):</span>
+                        <span id="displaySubtotal">$0.00</span>
+                    </div>
+                    
+                    <hr>
+                    <div class="d-flex justify-content-between fw-bold fs-4 text-danger mb-3">
+                        <span>TOTAL:</span>
+                        <span id="displayTotal">$0.00</span>
+                    </div>
+                    
+                    <button class="btn btn-success w-100 fs-5" id="checkoutButton" disabled>
+                        <i class="bi bi-check-circle"></i> Finalizar Venta
+                    </button>
+                    <button class="btn btn-outline-danger w-100 mt-2" id="clearCartButton" disabled>
+                        <i class="bi bi-trash"></i> Cancelar Carrito
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const API_SEARCH = "{{ url_for('buscar_productos_api') }}";
+    const API_CHECKOUT = "{{ url_for('finalizar_venta') }}";
+    
+    let cart = {}; // Almacena los productos en el carrito: {id_producto: {producto, cantidad}}
+    let subtotal = 0;
+    const IVA_RATE = 0.00; // CRÍTICO: 0% de IVA para Nota de Venta
+
+    // --- FUNCIONES DE CÁLCULO Y ACTUALIZACIÓN DEL DOM ---
+
+    function calculateTotals() {
+        subtotal = 0;
+        let itemCount = 0;
+        
+        for (const id in cart) {
+            const item = cart[id];
+            item.subtotal = parseFloat(item.precio) * item.cantidad;
+            subtotal += item.subtotal;
+            itemCount += item.cantidad;
+        }
+
+        const iva = subtotal * IVA_RATE;
+        const total = subtotal + iva; // Total es igual al Subtotal
+
+        // Actualizar el DOM
+        document.getElementById('displaySubtotal').textContent = `$${subtotal.toFixed(2)}`;
+        document.getElementById('displayTotal').textContent = `$${total.toFixed(2)}`;
+        document.getElementById('itemCount').textContent = Object.keys(cart).length;
+
+        // Habilitar/Deshabilitar botones
+        const isDisabled = Object.keys(cart).length === 0;
+        document.getElementById('checkoutButton').disabled = isDisabled;
+        document.getElementById('clearCartButton').disabled = isDisabled;
+        document.getElementById('emptyCartMessage').style.display = isDisabled ? '' : 'none';
+        
+        renderCart();
+    }
+
+    function renderCart() {
+        const cartBody = document.getElementById('cartTableBody');
+        cartBody.innerHTML = document.getElementById('emptyCartMessage').outerHTML; 
+
+        for (const id in cart) {
+            const item = cart[id];
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${item.codigo}</td>
+                <td>${item.nombre}</td>
+                <td class="text-end">$${item.precio.toFixed(2)}</td>
+                <td>
+                    <input type="number" class="form-control form-control-sm text-center cart-qty-input" 
+                           data-id="${id}" value="${item.cantidad}" min="1" max="${item.stock}" 
+                           style="width: 80px; display: inline-block;">
+                </td>
+                <td class="text-end fw-bold">$${item.subtotal.toFixed(2)}</td>
+                <td>
+                    <button class="btn btn-sm btn-outline-danger remove-item-btn" data-id="${id}">
+                        <i class="bi bi-x"></i>
+                    </button>
+                </td>
+            `;
+            cartBody.appendChild(row);
+        }
+        
+        // Adjuntar eventos a los nuevos elementos del carrito (inputs y botones)
+        document.querySelectorAll('.cart-qty-input').forEach(input => {
+            input.addEventListener('change', updateCartQuantity);
+        });
+        document.querySelectorAll('.remove-item-btn').forEach(button => {
+            button.addEventListener('click', removeItemFromCart);
+        });
+    }
+
+    // --- FUNCIONES DEL CARRITO ---
+
+    function addItemToCart(product) {
+        const id = product.id; 
+        // CRÍTICO: Usamos product.stock, que es el stock actual de la DB
+        const currentQtyInCart = cart[id] ? cart[id].cantidad : 0;
+        
+        if (product.stock <= currentQtyInCart) {
+            alert(`Stock insuficiente para ${product.nombre}. Stock actual: ${product.stock}`);
+            return;
+        }
+
+        if (cart[id]) {
+            cart[id].cantidad++;
+        } else {
+            cart[id] = {
+                id: id,
+                codigo: product.codigo,
+                nombre: product.nombre,
+                precio: parseFloat(product.precio),
+                stock: parseInt(product.stock), // CRÍTICO: Usamos product.stock
+                cantidad: 1,
+                subtotal: 0
+            };
+        }
+        calculateTotals();
+    }
+
+    function updateCartQuantity(event) {
+        const id = event.target.dataset.id;
+        let newQty = parseInt(event.target.value);
+
+        if (newQty < 1 || isNaN(newQty)) newQty = 1;
+
+        if (cart[id]) {
+            // Regla de Stock: No se puede superar el stock que había al iniciar la venta
+            if (newQty > cart[id].stock) {
+                alert(`No puedes seleccionar ${newQty} unidades. Stock máximo disponible: ${cart[id].stock}.`);
+                newQty = cart[id].stock;
+                event.target.value = newQty; 
+            }
+
+            cart[id].cantidad = newQty;
+            calculateTotals();
+        }
+    }
+
+    function removeItemFromCart(event) {
+        const id = event.currentTarget.dataset.id;
+        delete cart[id];
+        calculateTotals();
+    }
+
+    function clearCart() {
+        cart = {};
+        calculateTotals();
+        document.getElementById('cedulaCliente').value = '';
+        document.getElementById('searchResults').innerHTML = '';
+        document.getElementById('searchInput').value = '';
+        document.getElementById('searchInput').focus();
+    }
+
+    // --- FUNCIONES DE BÚSQUEDA ---
+
+    let searchTimeout = null;
+
+    async function searchProducts() {
+        const query = document.getElementById('searchInput').value.trim();
+        const resultsContainer = document.getElementById('searchResults');
+        resultsContainer.innerHTML = '';
+
+        if (query.length < 2) {
+            return;
+        }
+
+        try {
+            const response = await fetch(`${API_SEARCH}?q=${encodeURIComponent(query)}`);
+            const results = await response.json();
+            
+            if (results.length === 0) {
+                resultsContainer.innerHTML = `<a href="#" class="list-group-item list-group-item-action disabled text-danger">No se encontraron productos.</a>`;
+                return;
+            }
+
+            results.forEach(product => {
+                // CRÍTICO: Usamos product.stock (nombre que llega de la API)
+                const stockDisponible = product.stock - (cart[product.id] ? cart[product.id].cantidad : 0);
+                
+                const button = document.createElement('a');
+                button.href = "#";
+                button.className = `list-group-item list-group-item-action ${stockDisponible <= 0 ? 'list-group-item-warning disabled' : ''}`;
+                button.innerHTML = `
+                    <strong>${product.codigo}</strong> - ${product.nombre}
+                    <span class="badge bg-success float-end">$${parseFloat(product.precio).toFixed(2)}</span>
+                    <span class="badge bg-secondary float-end me-2">Stock: ${product.stock}</span>
+                `;
+                button.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    if (stockDisponible > 0) {
+                        addItemToCart(product);
+                        resultsContainer.innerHTML = ''; 
+                        document.getElementById('searchInput').value = '';
+                        document.getElementById('searchInput').focus();
+                    } else {
+                        // CRÍTICO: Usamos product.stock para el mensaje
+                        alert(`¡Stock Agotado! Solo hay ${product.stock} unidades.`);
+                    }
+                });
+                resultsContainer.appendChild(button);
+            });
+
+        } catch (error) {
+            console.error('Error al buscar productos:', error);
+        }
+    }
+    
+    // --- FUNCIÓN DE CHECKOUT ---
+    
+    async function handleCheckout() {
+        if (Object.keys(cart).length === 0) {
+            alert('El carrito está vacío. Agregue productos antes de finalizar la venta.');
+            return;
+        }
+
+        document.getElementById('checkoutButton').disabled = true;
+        document.getElementById('checkoutButton').innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Procesando...';
+        
+        const cedula = document.getElementById('cedulaCliente').value.trim();
+        
+        const cartItemsForAPI = Object.keys(cart).map(id => {
+            const item = cart[id];
+            return {
+                id: item.id,
+                cantidad: item.cantidad,
+                precio: item.precio,
+                subtotal: item.subtotal 
+            };
+        });
+
+        // El total es Subtotal * 1 (ya que IVA_RATE es 0)
+        const totalVenta = subtotal * (1 + IVA_RATE); 
+
+        try {
+            const response = await fetch(API_CHECKOUT, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    carrito: cartItemsForAPI,
+                    // Enviamos el total redondeado a 2 decimales para el backend
+                    total: totalVenta.toFixed(2), 
+                    cedula_cliente: cedula
+                })
+            });
+
+            if (!response.ok) {
+                 const result = await response.json();
+                 throw new Error(result.message || `Error del servidor (${response.status})`);
+            }
+
+            const result = await response.json();
+
+            if (result.success) {
+                clearCart();
+                window.location.reload(); 
+            } else {
+                alert(`Error al finalizar la venta: ${result.message}`);
+            }
+
+        } catch (error) {
+            console.error('Error al finalizar la venta:', error);
+            alert(`Error al finalizar la venta. Mensaje: ${error.message || 'Error de conexión'}`);
+        } finally {
+            document.getElementById('checkoutButton').disabled = false;
+            document.getElementById('checkoutButton').innerHTML = '<i class="bi bi-check-circle"></i> Finalizar Venta';
+        }
+    }
+
+    // --- INICIALIZACIÓN Y EVENTOS ---
+
+    document.addEventListener('DOMContentLoaded', () => {
+        calculateTotals();
+        
+        // Eventos para la búsqueda
+        document.getElementById('searchButton').addEventListener('click', searchProducts);
+        document.getElementById('searchInput').addEventListener('keyup', (e) => {
+            if (e.key === 'Enter') {
+                clearTimeout(searchTimeout); 
+                searchProducts();
+            } else {
+                // Búsqueda en tiempo real (300ms después de la última pulsación)
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(searchProducts, 300); 
+            }
+        });
+
+        // Eventos de control de carrito
+        document.getElementById('clearCartButton').addEventListener('click', clearCart);
+        document.getElementById('checkoutButton').addEventListener('click', handleCheckout);
+    });
+
+</script>
+{% endblock %}

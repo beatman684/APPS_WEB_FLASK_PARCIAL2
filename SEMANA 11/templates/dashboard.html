@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block title %}Inicio - PERNO TODO{% endblock %}
+
+{% block content %}
+    <div class="row mb-5 text-center">
+        <div class="col-md-12">
+            <h1 class="display-4 font-weight-bold text-primary">
+                <i class="fas fa-tools mr-2"></i> PERNO TODO
+            </h1>
+            <p class="lead text-muted">Sistema de Gestión de Almacén y Ferretería</p>
+            <hr class="my-4">
+            
+            <h3 class="mb-3">Bienvenido(a), <span class="text-dark">{{ g.user.nombre }}</span></h3>
+            <p class="text-secondary">Tu rol asignado es: <span class="badge badge-warning p-2">{{ g.user.role }}</span></p>
+        </div>
+    </div>
+    
+    <div class="row mt-4 justify-content-center">
+        <div class="col-md-8">
+            <h4 class="mb-3 text-center">Menú de Opciones y Accesos Rápidos</h4>
+            <div class="list-group shadow-sm">
+                
+                <a href="{{ url_for('listar_productos') }}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-list-alt fa-fw mr-3 text-info"></i> 
+                    Ver Catálogo de Productos e Inventario
+                    <i class="fas fa-chevron-right float-right mt-1"></i>
+                </a>
+
+                {% if g.user.role == 'Vendedor' or g.user.role == 'Administrador' %}
+                <a href="#" class="list-group-item list-group-item-action list-group-item-light">
+                    <i class="fas fa-shopping-cart fa-fw mr-3 text-success"></i> 
+                    Realizar una Nueva Venta (Punto de Venta)
+                    <i class="fas fa-chevron-right float-right mt-1"></i>
+                </a>
+                <a href="#" class="list-group-item list-group-item-action list-group-item-light">
+                    <i class="fas fa-file-invoice-dollar fa-fw mr-3 text-success"></i> 
+                    Ver Historial de Ventas
+                    <i class="fas fa-chevron-right float-right mt-1"></i>
+                </a>
+                {% endif %}
+
+                {% if g.user.role == 'Administrador' %}
+                <a href="#" class="list-group-item list-group-item-action list-group-item-warning font-weight-bold">
+                    <i class="fas fa-edit fa-fw mr-3"></i> 
+                    Administrar Productos (Altas, Bajas, Cambios)
+                    <i class="fas fa-chevron-right float-right mt-1"></i>
+                </a>
+                <a href="#" class="list-group-item list-group-item-action list-group-item-warning font-weight-bold">
+                    <i class="fas fa-user-shield fa-fw mr-3"></i> 
+                    Administrar Usuarios y Permisos del Sistema
+                    <i class="fas fa-chevron-right float-right mt-1"></i>
+                </a>
+                <a href="#" class="list-group-item list-group-item-action list-group-item-warning font-weight-bold">
+                    <i class="fas fa-chart-area fa-fw mr-3"></i> 
+                    Generar Reportes y Análisis
+                    <i class="fas fa-chevron-right float-right mt-1"></i>
+                </a>
+                {% endif %}
+                
+            </div>
+        </div>
+    </div>
+    
+{% endblock %}

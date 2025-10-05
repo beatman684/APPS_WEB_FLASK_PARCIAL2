@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Iniciar Sesión - PERNO TODO</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        /* **CLAVE** 1: Aseguramos que el body ocupe toda la ventana y sea el punto de referencia */
+        html, body {
+            height: 100%; 
+            margin: 0; 
+            padding: 0; 
+        }
+        
+        body {
+            background-color: #f0f2f5; 
+            background-image: linear-gradient(to bottom, #f8f9fa 0%, #e9ecef 100%); 
+            position: relative; /* Es el punto de referencia para el posicionamiento absoluto */
+        }
+        
+        /* **CLAVE** 2: Nueva clase para centrar absolutamente el cuadro de login */
+        .center-card-wrapper {
+            position: absolute;
+            top: 50%; /* Mueve el borde superior al 50% de la altura */
+            left: 50%; /* Mueve el borde izquierdo al 50% del ancho */
+            /* TRUCO CLAVE: Compensa el tamaño del elemento moviéndolo hacia atrás */
+            transform: translate(-50%, -50%); 
+            width: 100%; /* Permite que el contenido interno de Bootstrap funcione */
+            max-width: 800px; /* Asegura que el cuadro no sea más ancho de lo deseado */
+        }
+
+        .login-card {
+            width: 100%; 
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15); 
+            border-radius: 12px;
+            overflow: hidden;
+            border: none;
+        }
+        .info-panel {
+            background-color: #213d52; 
+            color: white;
+            padding: 30px;
+            display: flex; 
+            flex-direction: column;
+            justify-content: center; 
+            align-items: center; 
+            text-align: center; 
+            min-height: 400px; /* Asegura una altura mínima para que el texto se vea bien centrado */
+        }
+        .info-panel h1 {
+            font-size: 2.5rem;
+            margin-bottom: 5px;
+            font-weight: 700;
+        }
+        .info-panel h4 {
+            font-weight: 300;
+            color: #b5c7e1; 
+        }
+        .login-form-panel {
+            background-color: white;
+            padding: 40px 20px; 
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .login-content {
+            width: 100%; 
+            max-width: 300px; 
+        }
+    </style>
+</head>
+<body>
+    
+    <div class="center-card-wrapper">
+        <div class="row justify-content-center m-0 w-100"> 
+            <div class="col-md-12">
+                <div class="card login-card">
+                    <div class="row no-gutters">
+                        
+                        <div class="col-lg-6 info-panel d-none d-lg-flex">
+                            <div>
+                                <h1 class="font-weight-bold mb-3">PERNO TODO</h1>
+                                <h4 class="mb-4">SISTEMA DE VENTA E INVENTARIO</h4>
+                                <ul class="list-unstyled text-left mx-auto" style="max-width: 85%;">
+                                    <li class="mb-2"><i class="fas fa-check-circle text-success mr-2"></i> Gestión simplificada: Administra productos, clientes y proveedores.</li>
+                                    <li class="mb-2"><i class="fas fa-check-circle text-success mr-2"></i> Control Total: Monitorea existencias y recibe alertas de stock bajo.</li>
+                                    <li class="mb-2"><i class="fas fa-check-circle text-success mr-2"></i> Seguridad: Tus datos protegidos con las mejores prácticas.</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-6 login-form-panel">
+                            <div class="login-content">
+                                <h4 class="text-center mb-4 font-weight-bold text-primary">
+                                    <i class="fas fa-lock mr-2"></i> Iniciar Sesión
+                                </h4>
+                                <p class="text-center text-muted mb-4">Ingresa tus credenciales para acceder al sistema.</p>
+
+                                {% with messages = get_flashed_messages(with_categories=true) %}
+                                    {% if messages %}
+                                        <div class="mb-3">
+                                            {% for category, message in messages %}
+                                                <div class="alert alert-{{ category }}" role="alert">{{ message }}</div>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                {% endwith %}
+
+                                <form method="POST">
+                                    <div class="form-group">
+                                        <div class="input-group">
+                                            <div class="input-group-prepend">
+                                                <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+                                            </div>
+                                            <input type="email" name="email" class="form-control form-control-lg" placeholder="Correo Electrónico" required>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <div class="input-group">
+                                            <div class="input-group-prepend">
+                                                <span class="input-group-text"><i class="fas fa-key"></i></span>
+                                            </div>
+                                            <input type="password" name="password" class="form-control form-control-lg" placeholder="Contraseña" required>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="form-group form-check text-left">
+                                        <input type="checkbox" class="form-check-input" id="rememberMe">
+                                        <label class="form-check-label" for="rememberMe">Recordarme</label>
+                                    </div>
+                                    
+                                    <button type="submit" class="btn btn-primary btn-block btn-lg mt-4">
+                                        <i class="fas fa-sign-in-alt"></i> Acceder
+                                    </button>
+                                    
+                                    <div class="text-center mt-3">
+                                        <a href="#" class="text-muted small">Olvidé mi contraseña</a>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>
